@@ -24,7 +24,7 @@ app.get('/api/jobs', (req, res) => {
   } = req.query;
 
   const params = new URLSearchParams({
-    affid:       '9d7f12bbe1844e246046bbc41c1b75a7',
+    affid:       '7eb0408f27764cd139b0c35cb9f85e45',
     locale_code: 'de_DE',
     keywords,
     location,
