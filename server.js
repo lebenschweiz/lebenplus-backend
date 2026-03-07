@@ -5,28 +5,21 @@ const https   = require('https');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-const API_KEY = '7eb0408f27764cd139b0c35cb9f85e45';
-// Basic Auth: Base64(apikey + ":")
+// v4 API Key (aus der Doku-URL)
+const API_KEY = '7c363d8713061134c7bb031b35c29a5c';
 const AUTH_HEADER = 'Basic ' + Buffer.from(API_KEY + ':').toString('base64');
 
 app.use(cors({
-  origin: [
-    'https://lebenplus-jobs.ch',
-    'https://www.lebenplus-jobs.ch',
-    'http://localhost:3000'
-  ]
+  origin: '*'
 }));
 
 app.get('/api/jobs', (req, res) => {
   const {
-    keywords  = 'Jobs',
+    keywords  = 'Pflegefachkraft',
     location  = 'Schweiz',
     page      = 1,
     pagesize  = 20,
   } = req.query;
-
-  const userIp    = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '1.1.1.1';
-  const userAgent = req.headers['user-agent'] || 'Mozilla/5.0';
 
   const params = new URLSearchParams({
     locale_code: 'de_CH',
@@ -34,8 +27,8 @@ app.get('/api/jobs', (req, res) => {
     location,
     page_size:   pagesize,
     page,
-    user_ip:     userIp,
-    user_agent:  userAgent,
+    user_ip:     '1.1.1.1',
+    user_agent:  'Mozilla/5.0',
   });
 
   const options = {
@@ -44,14 +37,18 @@ app.get('/api/jobs', (req, res) => {
     method:   'GET',
     headers:  {
       'Authorization': AUTH_HEADER,
-      'User-Agent':    userAgent,
+      'User-Agent':    'Mozilla/5.0',
     }
   };
 
+  console.log(`Calling: https://search.api.careerjet.net/v4/query?${params.toString()}`);
+
   https.get(options, (apiRes) => {
     let data = '';
+    console.log(`Careerjet HTTP Status: ${apiRes.statusCode}`);
     apiRes.on('data', chunk => data += chunk);
     apiRes.on('end', () => {
+      console.log(`Careerjet Response: ${data.substring(0, 200)}`);
       try {
         const json = JSON.parse(data);
         res.json(json);
@@ -60,6 +57,7 @@ app.get('/api/jobs', (req, res) => {
       }
     });
   }).on('error', (err) => {
+    console.error(`Connection error: ${err.message}`);
     res.status(500).json({ error: err.message });
   });
 });
