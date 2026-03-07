@@ -22,40 +22,30 @@ function httpsGet(options) {
 }
 
 app.get('/api/jobs', async (req, res) => {
-  const { keywords = 'Pflegefachkraft', location = 'Schweiz', page = 1, pagesize = 20 } = req.query;
-
-  const userIp    = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() 
-                    || req.socket.remoteAddress 
-                    || '8.8.8.8';
+  const { keywords = 'Pflege', location = 'Schweiz', page = 1, pagesize = 20 } = req.query;
+  const userIp    = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || '8.8.8.8';
   const userAgent = req.headers['user-agent'] || 'Mozilla/5.0';
 
   const params = new URLSearchParams({
-    locale_code: 'de_CH',
+    locale_code:   'de_CH',
     keywords,
     location,
-    page_size:   pagesize,
+    page_size:     pagesize,
     page,
-    user_ip:     userIp,
-    user_agent:  userAgent,
+    fragment_size: 1000,   // max Beschreibungslänge
+    user_ip:       userIp,
+    user_agent:    userAgent,
   });
-
-  console.log(`user_ip: ${userIp} | keywords: ${keywords}`);
 
   try {
     const result = await httpsGet({
       hostname: 'search.api.careerjet.net',
       path:     `/v4/query?${params.toString()}`,
-      headers:  {
-        'Authorization': AUTH_HEADER,
-        'Content-Type':  'application/json',
-        'Referer':       REFERER,
-        'User-Agent':    userAgent,
-      }
+      headers:  { 'Authorization': AUTH_HEADER, 'Content-Type': 'application/json', 'Referer': REFERER, 'User-Agent': userAgent }
     });
-    console.log(`Careerjet status: ${result.status} | ${result.body.substring(0, 300)}`);
+    console.log(`Careerjet status: ${result.status}`);
     res.json(JSON.parse(result.body));
   } catch (err) {
-    console.error(err.message);
     res.status(500).json({ error: err.message });
   }
 });
