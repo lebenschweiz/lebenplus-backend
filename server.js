@@ -32,7 +32,7 @@ app.get('/api/jobs', async (req, res) => {
     location,
     page_size:     pagesize,
     page,
-    fragment_size: 5000,
+    fragment_size: 99999,
     user_ip:       userIp,
     user_agent:    userAgent,
   });
